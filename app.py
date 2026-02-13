@@ -282,7 +282,7 @@ def main():
     # Sidebar
     with st.sidebar:
         st.image("https://via.placeholder.com/300x100/667eea/ffffff?text=AI+Growth+System", 
-                use_container_width=True)
+                use_column_width=True)
         st.markdown("## 🎯 About")
         st.info(
             "This AI system uses **RandomForestRegressor** to predict next month's revenue "
