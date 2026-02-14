@@ -22,7 +22,7 @@ from datetime import datetime
 
 # Fix matplotlib backend for Streamlit Cloud
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # Import scikit-learn components for training
