@@ -21,9 +21,17 @@ import sys
 from datetime import datetime
 
 # Fix matplotlib backend for Streamlit Cloud
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+# Keep matplotlib optional so the app can still run when the package
+# is unavailable in constrained deployment environments.
+HAS_MATPLOTLIB = True
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+except ModuleNotFoundError:
+    HAS_MATPLOTLIB = False
+    matplotlib = None
+    plt = None
 
 # Import scikit-learn components for training
 try:
@@ -283,6 +291,9 @@ def create_visualization(inputs, prediction):
     Returns:
         matplotlib.figure.Figure: Created figure
     """
+    if not HAS_MATPLOTLIB:
+        return None
+
     try:
         fig, axes = plt.subplots(1, 2, figsize=(12, 4))
         
@@ -369,18 +380,21 @@ def display_model_metrics(metrics):
             st.dataframe(importance_df, use_container_width=True)
             
             # Bar chart for feature importance
-            try:
-                fig, ax = plt.subplots(figsize=(10, 4))
-                colors_gradient = plt.cm.viridis(np.linspace(0.3, 0.9, len(importance_df)))
-                ax.barh(importance_df['Feature'], importance_df['Importance'], color=colors_gradient)
-                ax.set_xlabel('Importance Score')
-                ax.set_title('Feature Importance in Prediction Model')
-                ax.grid(axis='x', alpha=0.3)
-                plt.tight_layout()
-                st.pyplot(fig)
-                plt.close(fig)
-            except Exception as e:
-                st.warning(f"Could not display feature importance chart: {e}")
+            if HAS_MATPLOTLIB:
+                try:
+                    fig, ax = plt.subplots(figsize=(10, 4))
+                    colors_gradient = plt.cm.viridis(np.linspace(0.3, 0.9, len(importance_df)))
+                    ax.barh(importance_df['Feature'], importance_df['Importance'], color=colors_gradient)
+                    ax.set_xlabel('Importance Score')
+                    ax.set_title('Feature Importance in Prediction Model')
+                    ax.grid(axis='x', alpha=0.3)
+                    plt.tight_layout()
+                    st.pyplot(fig)
+                    plt.close(fig)
+                except Exception as e:
+                    st.warning(f"Could not display feature importance chart: {e}")
+            else:
+                st.info("Install matplotlib to enable the feature-importance chart.")
     except Exception as e:
         st.error(f"Error displaying metrics: {e}")
 
@@ -395,6 +409,12 @@ def main():
                     unsafe_allow_html=True)
         st.markdown("### Predict Your Company's Next Month Revenue Using AI")
         st.markdown("---")
+
+        if not HAS_MATPLOTLIB:
+            st.warning(
+                "Matplotlib is not installed in this environment. "
+                "Prediction features still work, but chart visualizations are disabled."
+            )
         
         # Sidebar
         with st.sidebar:
@@ -618,7 +638,8 @@ def main():
                 fig = create_visualization(inputs_dict, prediction)
                 if fig is not None:
                     st.pyplot(fig)
-                    plt.close(fig)
+                    if HAS_MATPLOTLIB:
+                        plt.close(fig)
                 
                 # Business insights
                 st.markdown("###")
