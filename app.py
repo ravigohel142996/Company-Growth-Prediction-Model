@@ -40,6 +40,11 @@ try:
     from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 except ImportError as e:
     st.error(f"Error importing scikit-learn: {e}")
+    st.info(
+        "Install project dependencies in the active Python environment with: "
+        "`python -m pip install -r requirements.txt`"
+    )
+    st.code("python -m pip show scikit-learn", language="bash")
     st.stop()
 
 # Page configuration
